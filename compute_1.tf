@@ -16,6 +16,7 @@ resource "aws_instance" "amazon_linux" {
 
 #add ssh key
 resource "aws_key_pair" "annas" {
+  provider = aws.dev
   key_name   = "annas"
   public_key = var.ssh_key
 }
