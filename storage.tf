@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "html" {
-  provider = aws.central
+  provider      = aws.central
   bucket        = "annas-twink-s3"
   force_destroy = true
   acl           = "private"
@@ -19,23 +19,31 @@ resource "aws_s3_bucket" "html" {
   versioning {
     enabled = true
   }
-   
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
 }
 
 resource "aws_s3_bucket_object" "html" {
   provider = aws.central
-  key    = "index.html"
-  bucket = aws_s3_bucket.html.id
-  source = "index.html"
-  acl    = "private"
-  etag   = filemd5("index.html")
+  key      = "index.html"
+  bucket   = aws_s3_bucket.html.id
+  source   = "index.html"
+  acl      = "private"
+  etag     = filemd5("index.html")
 }
 
 
 resource "aws_s3_bucket_policy" "policy" {
-    provider = aws.central
-    bucket = aws_s3_bucket.html.id
-    policy = <<POLICY
+  provider = aws.central
+  bucket   = aws_s3_bucket.html.id
+  policy   = <<POLICY
 {
   "Version": "2012-10-17",
     "Statement": [
@@ -53,3 +61,4 @@ resource "aws_s3_bucket_policy" "policy" {
 }
 POLICY
 }
+

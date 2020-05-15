@@ -1,6 +1,6 @@
 resource "aws_security_group" "amazon_linux" {
   provider = aws.dev
-  name = "amazon_linux_instance"
+  name     = "amazon_linux_instance"
 
   ingress {
     from_port   = var.server_port
