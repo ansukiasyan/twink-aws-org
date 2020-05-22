@@ -1,21 +1,23 @@
 #!/bin/bash
+#set -eu -o pipefail
 
-terraform init -input=false
-terraform apply -input=false -auto-approve 
+readonly TERRAFORM_FILE='terraform.tf'
+readonly BACKEND_ENABLED_SUFFIX='.backend_enabled'
 
-## terraform plan -out=tfplan -input=false
-## terraform apply -input=false tfplan 
+# check if s3 is available
+# if not
+if aws s3 ls "s3://annas-terraform-state" 2>&1 | grep -q 'NoSuchBucket' ; then
+    sed -i${BACKEND_ENABLED_SUFFIX} -e 's@\(^[[:blank:]]*backend "s3" {\)@/* \1@' -e 's@\(^[[:blank:]]*} # backend end\)@\1 */@' ${TERRAFORM_FILE}
 
-#uncomment terraform backend
-for (( i=1; i<=10; i++ ))
-do  
-    line=$(sed "${i}q;d" main.tf)    
-    if [[ "$line" =~ ^\#.*  ]]; then                
-        sed -i "${i}s/#//" main.tf        
-    fi   
-done
+    terraform init
+    terraform apply
+
+    mv ${TERRAFORM_FILE}${BACKEND_ENABLED_SUFFIX} ${TERRAFORM_FILE}     
+fi
+
 
 #init terraform remote backend and copy local tfstate to a remote backend
-terraform init -force-copy
+terraform init
+terraform apply
 
 echo "Success!"
