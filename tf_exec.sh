@@ -1,11 +1,15 @@
 #!/bin/bash
 #set -eu -o pipefail
 
+
 readonly TERRAFORM_FILE='terraform.tf'
 readonly BACKEND_ENABLED_SUFFIX='.backend_enabled'
 
 # check if s3 is available
 # if not
+
+#aws s3api head-bucket --bucket annas-test-bucket1
+
 if aws s3 ls "s3://annas-terraform-state" 2>&1 | grep -q 'NoSuchBucket' ; then
     sed -i${BACKEND_ENABLED_SUFFIX} -e 's@\(^[[:blank:]]*backend "s3" {\)@/* \1@' -e 's@\(^[[:blank:]]*} # backend end\)@\1 */@' ${TERRAFORM_FILE}
 

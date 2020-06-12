@@ -1,11 +1,11 @@
 provider "aws" {
-  region  = "us-east-1"
+  region  = var.region
   version = "~>2.0"
 }
 
 provider "aws" {
   alias   = "central"
-  region  = "us-east-1"
+  region  = var.region
   version = "~>2.0"
   assume_role {
     role_arn = "arn:aws:iam::${aws_organizations_account.central.id}:role/OrganizationAccountAccessRole"
@@ -14,7 +14,7 @@ provider "aws" {
 
 provider "aws" {
   alias   = "dev"
-  region  = "us-east-1"
+  region  = var.region
   version = "~>2.0"
   assume_role {
     role_arn = "arn:aws:iam::${aws_organizations_account.dev.id}:role/OrganizationAccountAccessRole"
@@ -23,7 +23,7 @@ provider "aws" {
 
 provider "aws" {
   alias   = "prod"
-  region  = "us-east-1"
+  region  = var.region
   version = "~>2.0"
   assume_role {
     role_arn = "arn:aws:iam::${aws_organizations_account.prod.id}:role/OrganizationAccountAccessRole"

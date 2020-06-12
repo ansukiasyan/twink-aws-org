@@ -9,7 +9,9 @@ resource "aws_instance" "amazon_linux" {
 
 
   tags = {
-    Name = "web-server"
+    Name      = "web-server"
+    StartTime = "09:00"
+    StopTime  = "18:00"
   }
   iam_instance_profile = aws_iam_instance_profile.s3_read.id
 }
@@ -68,5 +70,53 @@ resource "aws_iam_role_policy" "s3_read" {
     ]
 }
 EOF
+
+}
+
+#Assume role for the central account
+data "aws_iam_policy_document" "lambda_main" {
+  provider           = aws.dev
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_organizations_account.central.id]
+    }
+  }
+
+}
+
+resource "aws_iam_role" "lambda_main" { 
+  provider           = aws.dev
+  name = "labmda_access"
+  assume_role_policy = data.aws_iam_policy_document.lambda_main.json
+
+}
+
+#policy to allow access from a labda function in a central account
+data "aws_iam_policy_document" "lambda_main_ec2" {
+  provider           = aws.dev
+  statement {
+    effect  = "Allow"
+    actions = [
+      "ec2:StartInstances",
+      "ec2:StopInstances",
+      "ec2:DescribeTags",
+      "ec2:DescribeInstances"
+    ]
+    resources = ["*"]
+
+  }
+
+}
+
+
+resource "aws_iam_role_policy" "lambda_main_ec2" {
+  provider = aws.dev
+  name     = "lambda_orchestrator"
+  role     = aws_iam_role.lambda_main.id
+  policy   = data.aws_iam_policy_document.lambda_main_ec2.json
 
 }
