@@ -75,7 +75,7 @@ EOF
 
 #Assume role for the central account
 data "aws_iam_policy_document" "lambda_main" {
-  provider           = aws.dev
+  provider = aws.dev
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
@@ -88,18 +88,18 @@ data "aws_iam_policy_document" "lambda_main" {
 
 }
 
-resource "aws_iam_role" "lambda_main" { 
+resource "aws_iam_role" "lambda_main" {
   provider           = aws.dev
-  name = "labmda_access"
+  name               = "labmda_access"
   assume_role_policy = data.aws_iam_policy_document.lambda_main.json
 
 }
 
 #policy to allow access from a labda function in a central account
 data "aws_iam_policy_document" "lambda_main_ec2" {
-  provider           = aws.dev
+  provider = aws.dev
   statement {
-    effect  = "Allow"
+    effect = "Allow"
     actions = [
       "ec2:StartInstances",
       "ec2:StopInstances",

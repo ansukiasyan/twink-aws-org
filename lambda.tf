@@ -35,7 +35,7 @@ data "archive_file" "orchestrator" {
 # }
 
 data "aws_iam_policy_document" "lambda" {
-  provider           = aws.central
+  provider = aws.central
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
@@ -58,11 +58,11 @@ resource "aws_iam_role" "lambda" {
 
 
 data "aws_iam_policy_document" "lambda_ec2_assume" {
-  provider           = aws.central
+  provider = aws.central
   statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRole"]
-    resources = [aws_iam_role.lambda_main.arn]    
+    effect    = "Allow"
+    actions   = ["sts:AssumeRole"]
+    resources = [aws_iam_role.lambda_main.arn]
   }
 
 }
@@ -78,3 +78,23 @@ resource "aws_iam_role_policy" "ec2" {
 
 
 #policy for cloudwatch
+resource "aws_cloudwatch_event_rule" "orchestrator" {
+  provider            = aws.central
+  name                = "orchestration_rule"
+  description         = "Trigger orchestrator lambda func"
+  schedule_expression = "cron(0/10 * * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "orchestrator" {
+  provider = aws.central
+  rule     = aws_cloudwatch_event_rule.orchestrator.name
+  arn      = aws_lambda_function.orchestrator.arn
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch" {
+  provider      = aws.central
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.orchestrator.function_name
+  principal     = "events.amazonaws.com"
+}
