@@ -16,64 +16,57 @@ resource "aws_instance" "amazon_linux" {
   iam_instance_profile = aws_iam_instance_profile.s3_read.id
 }
 
-#add ssh key
 resource "aws_key_pair" "annas" {
   provider   = aws.dev
   key_name   = "annas"
   public_key = var.ssh_key
 }
 
-#iam role to mark ec2 instance as trusted
-resource "aws_iam_role" "s3_read" {
-  provider           = aws.dev
-  name               = "s3_read_only"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
+# EC2 main role
+data "aws_iam_policy_document" "ec2" {
+  provider = aws.dev
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
     }
-  ]
-}
-EOF    
+  }
+
 }
 
-#connect iam role to an instance profile
+resource "aws_iam_role" "ec2" {
+  provider           = aws.dev
+  name               = "s3_read_only"
+  assume_role_policy = data.aws_iam_policy_document.ec2.json
+}
+
 resource "aws_iam_instance_profile" "s3_read" {
   provider = aws.dev
   name     = "s3_read_only"
-  role     = aws_iam_role.s3_read.name
+  role     = aws_iam_role.ec2.name
 }
 
-#iam policy to allow read-only access to the s3 bucket
+
+data "aws_iam_policy_document" "ec2_s3_read" {
+  provider = aws.dev
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.html.arn}/${aws_s3_bucket_object.html.key}"]
+  }
+
+}
+
 resource "aws_iam_role_policy" "s3_read" {
   provider = aws.dev
   name     = "s3_read_only_policy"
-  role     = aws_iam_role.s3_read.id
-  policy   = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:GetObject"
-            ],
-            "Resource": "${aws_s3_bucket.html.arn}/${aws_s3_bucket_object.html.key}"
-        }
-    ]
-}
-EOF
-
+  role     = aws_iam_role.ec2.id
+  policy   = data.aws_iam_policy_document.ec2_s3_read.json
 }
 
-#Assume role for the central account
 data "aws_iam_policy_document" "lambda_main" {
   provider = aws.dev
   statement {
@@ -95,7 +88,6 @@ resource "aws_iam_role" "lambda_main" {
 
 }
 
-#policy to allow access from a labda function in a central account
 data "aws_iam_policy_document" "lambda_main_ec2" {
   provider = aws.dev
   statement {

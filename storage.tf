@@ -40,25 +40,25 @@ resource "aws_s3_bucket_object" "html" {
 }
 
 
-resource "aws_s3_bucket_policy" "policy" {
+# Bucket object read only
+data "aws_iam_policy_document" "bucket" {
+  provider = aws.central
+  statement {
+    effect  = "Allow"
+    actions = ["s3:GetObject"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_organizations_account.dev.id]
+    }
+    resources = ["${aws_s3_bucket.html.arn}/${aws_s3_bucket_object.html.key}"]
+  }
+
+}
+
+resource "aws_s3_bucket_policy" "bucket" {
   provider = aws.central
   bucket   = aws_s3_bucket.html.id
-  policy   = <<POLICY
-{
-  "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "${aws_organizations_account.dev.id}"
-            },
-            "Action": [
-                "s3:GetObject"
-            ],
-            "Resource": "${aws_s3_bucket.html.arn}/${aws_s3_bucket_object.html.key}"
-        }
-    ]
-}
-POLICY
+  policy   = data.aws_iam_policy_document.bucket.json
 }
 

@@ -22,18 +22,7 @@ data "archive_file" "orchestrator" {
   output_path = "ec2_orchestration.zip"
 }
 
-# data "aws_lambda_invocation" "orchestrator" {
-#   provider      = aws.central
-#   function_name = aws_lambda_function.orchestrator.function_name
-#   input         = <<JSON
-#   {
-#     "key1": "value1",
-#     "key2": "value2"
-#   }
-#   JSON
-
-# }
-
+# Lambda main role
 data "aws_iam_policy_document" "lambda" {
   provider = aws.central
   statement {
@@ -48,7 +37,6 @@ data "aws_iam_policy_document" "lambda" {
 
 }
 
-
 resource "aws_iam_role" "lambda" {
   provider = aws.central
   name     = "lambda"
@@ -56,7 +44,7 @@ resource "aws_iam_role" "lambda" {
   assume_role_policy = data.aws_iam_policy_document.lambda.json
 }
 
-
+# Lambda ec2 assume
 data "aws_iam_policy_document" "lambda_ec2_assume" {
   provider = aws.central
   statement {
@@ -67,7 +55,6 @@ data "aws_iam_policy_document" "lambda_ec2_assume" {
 
 }
 
-
 resource "aws_iam_role_policy" "ec2" {
   provider = aws.central
   name     = "orchestrator_policy"
@@ -76,8 +63,7 @@ resource "aws_iam_role_policy" "ec2" {
 
 }
 
-
-#policy for cloudwatch
+#cloudwatch event trigger every 10 mins
 resource "aws_cloudwatch_event_rule" "orchestrator" {
   provider            = aws.central
   name                = "orchestration_rule"
