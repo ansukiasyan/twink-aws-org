@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     SECRET_KEY = acct_dev['Credentials']['SecretAccessKey']
     SESSION_TOKEN = acct_dev['Credentials']['SessionToken']
 
-    #create service client using the assumed role credentials
+    
     ec2 = boto3.client(
         'ec2',
         aws_access_key_id=ACCESS_KEY,
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
         if len(stop_instanceId_list) > 0:
             stop_resp = ec2.stop_instances(InstanceIds=stop_instanceId_list)
             responses.append(stop_resp)
-            
+
     return responses
 
         
