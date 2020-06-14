@@ -58,11 +58,18 @@ def lambda_handler(event, context):
                 stop_instanceId_list.append(instance['InstanceId'])
 
         if len(start_instanceId_list) > 0:
-            start_resp = ec2.start_instances(InstanceIds=start_instanceId_list)
-            responses.append(start_resp)
+            try:
+                start_resp = ec2.start_instances(InstanceIds=start_instanceId_list)
+                responses.append(start_resp)
+            except Exception as e:
+                return e            
+            
         if len(stop_instanceId_list) > 0:
-            stop_resp = ec2.stop_instances(InstanceIds=stop_instanceId_list)
-            responses.append(stop_resp)
+            try:
+                stop_resp = ec2.stop_instances(InstanceIds=stop_instanceId_list)
+                responses.append(stop_resp)
+            except Exception as e:
+                return e            
 
     return responses
 
