@@ -27,9 +27,13 @@ jobs:
       with:
         terraform_version: 0.12.24
       
+    - name: Bucket check
+      run: aws s3api head-bucket --bucket annas-terraform-state    
+      id: bucket-check       
 
     - name: Terraform Init
-      run: terraform init      
+      run: terraform init
+      if:  steps.bucket-check.outputs      
 
     - name: Terraform Format
       run: terraform fmt -check
