@@ -28,7 +28,7 @@ jobs:
         terraform_version: 0.12.24
       
     - name: Bucket check
-      run: aws s3api head-bucket --bucket annas-terraform-state    
+      run: aws s3api head-bucket --bucket annas-terraform    
       id: bucket-check       
 
     - name: Terraform Init
